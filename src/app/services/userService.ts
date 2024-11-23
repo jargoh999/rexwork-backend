@@ -27,4 +27,6 @@ export class UserService {
   async getAllUsers() {
     return await User.find({});
   }
+
+  
 }
