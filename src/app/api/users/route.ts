@@ -20,8 +20,6 @@ function generateToken(user: { id: string, role: string }) {
   return jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' }); 
 }
 
-
-
 export const GET = async (request: NextRequest, p0: any) => {
   await dbConnect();
   try {
@@ -33,16 +31,15 @@ export const GET = async (request: NextRequest, p0: any) => {
   }
 };
 
+
+
 export const POST = async (request: NextRequest, p0: any) => {
   await dbConnect();
   try {
     const body = await request.json();
     const createUserDto = plainToClass(CreateUserDto, body);
     const errors = await validate(createUserDto);
-
-    if (errors.length > 0) {
-      return NextResponse.json(errors, { status: 400 });
-    }
+    if (errors.length > 0) {  return NextResponse.json(errors, { status: 400 }); }
     const { name, email, password, role } = createUserDto;
     let user = await userService.getUserByEmail(email);
     if (user) {
@@ -58,37 +55,41 @@ export const POST = async (request: NextRequest, p0: any) => {
   }
 };
 
+
+
 export const PUT = async (request: NextRequest) => {
   return authMiddleware(request, () => roleMiddleware(request, 'admin', async () => {
     await dbConnect();
     try {
-      const { id, ...data } = await request.json();
-      const updatedUser = await userService.updateUser(id, data);
-      if (!updatedUser) {
-        return NextResponse.json({ message: 'User not found' }, { status: 404 });
-      }
+      const { searchParams } = new URL(request.url);
+      const id = searchParams.get('id');
+      const body = await request.json();
+      const updatedUser = await userService.updateUser(id!, body);
       return NextResponse.json(updatedUser);
     } catch (err: any) {
       console.error(err);
-      return NextResponse.json({ message: 'Error updating user' }, { status: 500 });
+      return NextResponse.json({ error: err.message });
     }
   }));
 };
+
+
 
 export const DELETE = async (request: NextRequest) => {
   return authMiddleware(request, () => roleMiddleware(request, 'admin', async () => {
     await dbConnect();
     try {
-      const { id } = await request.json();
-      const deletedUser = await userService.deleteUser(id);
-      if (!deletedUser) {
-        return NextResponse.json({ message: 'User not found' }, { status: 404 });
-      }
+      const { searchParams } = new URL(request.url);
+      const id = searchParams.get('id');
+      await userService.deleteUser(id!);
       return NextResponse.json({ message: 'User deleted successfully' });
     } catch (err: any) {
       console.error(err);
-      return NextResponse.json({ message: 'Error deleting user' }, { status: 500 });
+      return NextResponse.json({ error: err.message });
     }
   }));
 };
+
+
+
 

@@ -20,7 +20,6 @@ export const authMiddleware = async (request: NextRequest, next: () => Promise<N
     return new NextResponse(JSON.stringify({ message: 'Invalid token.' }), { status: 403 });
   }
 };
-
 export const roleMiddleware = async (request: NextRequest, role: string, next: () => Promise<NextResponse>) => {
   const user = (request as any).user;
   if (user.role !== role) {
